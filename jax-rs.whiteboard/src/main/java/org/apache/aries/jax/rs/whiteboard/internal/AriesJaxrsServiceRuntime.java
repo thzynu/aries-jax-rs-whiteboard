@@ -962,6 +962,30 @@ public class AriesJaxrsServiceRuntime implements JaxrsServiceRuntime {
                 ExtensionDTO[]::new
             );
 
+        applyNameBindingsToExtensions(applicationDTO);
+
+        CxfJaxrsServiceRegistrator cxfJaxRsServiceRegistrator =
+            ari._cxfJaxRsServiceRegistrator;
+
+        Bus bus = cxfJaxRsServiceRegistrator.getBus();
+        Iterable<Class<?>> resourceClasses =
+            cxfJaxRsServiceRegistrator.getStaticResourceClasses();
+
+        ArrayList<ResourceMethodInfoDTO> resourceMethodInfoDTOS =
+            new ArrayList<>();
+
+        for (Class<?> resourceClass : resourceClasses) {
+            resourceMethodInfoDTOS.addAll(
+                ClassIntrospector.getResourceMethodInfos(resourceClass, bus));
+        }
+
+        applicationDTO.resourceMethods = resourceMethodInfoDTOS.toArray(
+            new ResourceMethodInfoDTO[0]);
+
+        return applicationDTO;
+    }
+
+    private void applyNameBindingsToExtensions(ApplicationDTO applicationDTO) {
         Map<String, Set<ExtensionDTO>> nameBoundExtensions =
             new HashMap<>();
 
@@ -1014,26 +1038,6 @@ public class AriesJaxrsServiceRuntime implements JaxrsServiceRuntime {
                 extensionDTO.filteredByName = resourceDTOS.toArray(
                     new ResourceDTO[0])
         );
-
-        CxfJaxrsServiceRegistrator cxfJaxRsServiceRegistrator =
-            ari._cxfJaxRsServiceRegistrator;
-
-        Bus bus = cxfJaxRsServiceRegistrator.getBus();
-        Iterable<Class<?>> resourceClasses =
-            cxfJaxRsServiceRegistrator.getStaticResourceClasses();
-
-        ArrayList<ResourceMethodInfoDTO> resourceMethodInfoDTOS =
-            new ArrayList<>();
-
-        for (Class<?> resourceClass : resourceClasses) {
-            resourceMethodInfoDTOS.addAll(
-                ClassIntrospector.getResourceMethodInfos(resourceClass, bus));
-        }
-
-        applicationDTO.resourceMethods = resourceMethodInfoDTOS.toArray(
-            new ResourceMethodInfoDTO[0]);
-
-        return applicationDTO;
     }
 
     private FailedExtensionDTO buildFailedExtensionDTO(
